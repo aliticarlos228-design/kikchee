@@ -1,0 +1,12 @@
+# Render — copier-coller EXACTEMENT (une seule ligne)
+
+Build Command:
+npm install && npm run build
+
+Start Command:
+npm start
+
+Root Directory:
+backend
+
+⚠️ Ne colle PAS les logs d'erreur dans Build Command — seulement la ligne ci-dessus.
