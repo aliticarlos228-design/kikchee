@@ -1,0 +1,16 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: logiflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: logiflow
+      POSTGRES_PASSWORD: logiflow123
+      POSTGRES_DB: logiflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - logiflow_pgdata:/var/lib/postgresql/data
+
+volumes:
+  logiflow_pgdata:

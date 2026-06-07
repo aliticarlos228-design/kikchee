@@ -1,0 +1,12 @@
+# Variables à copier sur Render (Web Service → backend)
+# Ne pas commiter de vrais secrets — ce fichier est un modèle.
+
+DATABASE_URL=postgresql://...@ep-....neon.tech/neondb?sslmode=require
+JWT_SECRET=kikchee-jwt-prod-7f3a9c2e8b1d4f6a0e5c9b2d8a4f7e1
+JWT_EXPIRES_IN=24h
+PORT=3000
+NODE_ENV=production
+CORS_ORIGIN=https://VOTRE-APP.vercel.app
+
+# Vercel (frontend) — une seule variable :
+# VITE_API_URL=https://VOTRE-API.onrender.com/api

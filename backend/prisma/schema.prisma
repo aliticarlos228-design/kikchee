@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  client
+  merchant
+  driver
+  admin
+}
+
+enum VehicleType {
+  MOTO
+  TAXI
+  FOURGON
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum OrderSource {
+  CLIENT
+  MERCHANT
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum PackageStatus {
+  CREATED
+  READY
+  PICKED_UP
+  DELIVERED
+}
+
+enum DeliveryStatus {
+  AVAILABLE
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum PaymentMethod {
+  CASH
+  MOBILE_MONEY
+}
+
+enum PaymentStatus {
+  PENDING
+  COLLECTED
+}
+
+enum ChatMessageKind {
+  TEXT
+  VOICE
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  phone        String?
+  latitude     Float?
+  longitude    Float?
+  vehicleType  VehicleType? @map("vehicle_type")
+  active       Boolean  @default(true)
+  lastActiveAt DateTime? @map("last_active_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  addresses         Address[]
+  clientOrders      Order[]    @relation("ClientOrders")
+  merchantOrders    Order[]    @relation("MerchantOrders")
+  packages          Package[]
+  deliveries        Delivery[]
+  driverBids        DriverBid[]
+  chatMessages      ChatMessage[]
+
+  @@map("users")
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  userId     String  @map("user_id")
+  label      String?
+  street     String
+  city       String
+  postalCode String  @map("postal_code")
+  latitude   Float
+  longitude  Float
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pickupOrders      Order[] @relation("PickupAddress")
+  deliveryOrders    Order[] @relation("DeliveryAddress")
+
+  @@map("addresses")
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  clientId         String?     @map("client_id")
+  merchantId       String?     @map("merchant_id")
+  pickupAddressId  String      @map("pickup_address_id")
+  deliveryAddressId String     @map("delivery_address_id")
+  recipientName    String?     @map("recipient_name")
+  recipientPhone   String?     @map("recipient_phone")
+  source           OrderSource @default(CLIENT)
+  status           OrderStatus @default(PENDING)
+  weight           Float
+  description      String?
+  vehicleType      VehicleType @default(TAXI) @map("vehicle_type")
+  estimatedPrice   Float?      @map("estimated_price")
+  estimatedMinutes Int?        @map("estimated_minutes")
+  paymentMethod    PaymentMethod @default(CASH) @map("payment_method")
+  paymentStatus    PaymentStatus @default(PENDING) @map("payment_status")
+  commissionAmount Float?      @map("commission_amount")
+  driverPayout     Float?      @map("driver_payout")
+  cancelledAt      DateTime?   @map("cancelled_at")
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  client           User?           @relation("ClientOrders", fields: [clientId], references: [id])
+  merchant         User?           @relation("MerchantOrders", fields: [merchantId], references: [id])
+  pickupAddress    Address         @relation("PickupAddress", fields: [pickupAddressId], references: [id])
+  deliveryAddress  Address         @relation("DeliveryAddress", fields: [deliveryAddressId], references: [id])
+  package          Package?
+  delivery         Delivery?
+  statusHistory    StatusHistory[]
+  bids             DriverBid[]
+  chatMessages     ChatMessage[]
+
+  @@map("orders")
+}
+
+model Package {
+  id          String        @id @default(uuid())
+  merchantId  String        @map("merchant_id")
+  orderId     String?       @unique @map("order_id")
+  weight      Float
+  length      Float?
+  width       Float?
+  height      Float?
+  category    String?
+  description String?
+  status      PackageStatus @default(CREATED)
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  merchant User   @relation(fields: [merchantId], references: [id])
+  order    Order? @relation(fields: [orderId], references: [id])
+
+  @@map("packages")
+}
+
+model Delivery {
+  id          String         @id @default(uuid())
+  orderId     String         @unique @map("order_id")
+  driverId    String?        @map("driver_id")
+  status      DeliveryStatus @default(AVAILABLE)
+  acceptedAt  DateTime?      @map("accepted_at")
+  completedAt DateTime?      @map("completed_at")
+  driverLat   Float?         @map("driver_lat")
+  driverLng   Float?         @map("driver_lng")
+  lastPingAt  DateTime?      @map("last_ping_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  order  Order @relation(fields: [orderId], references: [id])
+  driver User? @relation(fields: [driverId], references: [id])
+
+  @@map("deliveries")
+}
+
+model StatusHistory {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  status    String
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("status_history")
+}
+
+model DriverBid {
+  id            String    @id @default(uuid())
+  orderId       String    @map("order_id")
+  driverId      String    @map("driver_id")
+  proposedPrice Float     @map("proposed_price")
+  status        BidStatus @default(PENDING)
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driver User  @relation(fields: [driverId], references: [id])
+
+  @@unique([orderId, driverId])
+  @@map("driver_bids")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  orderId   String   @map("order_id")
+  senderId  String   @map("sender_id")
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sender User  @relation(fields: [senderId], references: [id])
+
+  @@index([orderId, createdAt])
+  @@map("chat_messages")
+}
