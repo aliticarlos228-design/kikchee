@@ -1,4 +1,4 @@
-﻿# kikchee
+# kikchee
 
 Plateforme intelligente de logistique et de livraison multi-acteurs.
 
