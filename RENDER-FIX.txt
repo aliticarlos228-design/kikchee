@@ -1,0 +1,52 @@
+# ⚠️ URGENT — Corriger Render (Build Command cassé)
+
+Tu as collé les LOGS D'ERREUR dans le champ "Build Command".
+Render essaie d'exécuter des milliers de caractères → échec garanti.
+
+## Étapes (2 minutes)
+
+1. Ouvre Render → ton service **kikchee**
+2. Menu gauche → **Settings**
+3. Descends jusqu'à **Build & Deploy**
+4. Champ **Build Command** :
+   - Clique dedans
+   - **Ctrl + A** (tout sélectionner)
+   - **Suppr** (effacer TOUT)
+   - Tape UNIQUEMENT ceci (18 caractères) :
+
+```
+npm install
+```
+
+5. Champ **Start Command** (efface et mets) :
+
+```
+npm start
+```
+
+6. **Root Directory** :
+
+```
+backend
+```
+
+7. Clique **Save Changes** en bas
+8. **Manual Deploy** → **Deploy latest commit**
+
+## Comment vérifier que c'est bon
+
+Dans les logs tu DOIS voir :
+
+```
+Running build command 'npm install'...
+```
+
+Si tu vois `Running build command '==> Cloning from...` → c'est ENCORE cassé, retourne à l'étape 4.
+
+## Alternative : recréer le service
+
+Si tu n'arrives pas à vider le champ :
+1. Supprime le Web Service actuel (Settings → Delete)
+2. Render → **New +** → **Blueprint**
+3. Connecte le repo `aliticarlos228-design/kikchee`
+4. Render lit `render.yaml` automatiquement

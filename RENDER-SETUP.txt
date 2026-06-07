@@ -1,7 +1,7 @@
 # Render — copier-coller EXACTEMENT (une seule ligne)
 
 Build Command:
-npm install && npm run build
+npm install
 
 Start Command:
 npm start

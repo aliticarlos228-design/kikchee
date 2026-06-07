@@ -1,9 +1,3 @@
 ﻿node_modules/
-dist/
+frontend/dist/
 .env
-.env.*
-!.env.example
-*.log
-.DS_Store
-Thumbs.db
-frontend/certs/
